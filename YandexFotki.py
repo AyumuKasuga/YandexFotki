@@ -45,8 +45,21 @@ class YandexFotki():
     def DownloadStatus(self, BlockAcquiredN, BlockAcquiredSize, TotalSize):
         sys.stdout.write('\r')
         downloaded=str(BlockAcquiredN*BlockAcquiredSize)
-        sys.stdout.write("downloading: "+downloaded+"/"+str(TotalSize))
+        sys.stdout.write("downloading: "+self.HumanSize(BlockAcquiredN*BlockAcquiredSize)+"/"+self.HumanSize(TotalSize))
         sys.stdout.flush()
+    def HumanSize(self, size):
+        if size < 524288:
+            humansize=str(size)+' Bytes'
+        elif size >= 524288 and size < 1048576:
+            sizekb=round(float(size)/1024, 2)
+            humansize=str(sizekb)+' Kb'
+        elif size >= 1048576 and size < 536870912:
+            sizemb=round(float(size)/1048576, 2)
+            humansize=str(sizemb)+' Mb'
+        elif size > 536870912:
+            sizegb=round(float(size)/1073741824, 2)
+            humansize=str(sizegb)+' Gb'
+        return humansize
 #        print "downloading: "+str(BlockAcquiredN)+" "+str(BlockAcquiredSize)+" "+str(TotalSize)
 
 #y=YandexFotki('AyumuKasuga')
