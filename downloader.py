@@ -30,10 +30,10 @@ def qdownload():
         print str(threading.currentThread().getName())+': '+str(args['filename'])+' downloading...'
         res=y.GetPhoto(args['link'], args['filename'], args['path'])
         if res['exists'] == True:
-            print str(threading.currentThread().getName())+': '+str(args['filename'])+' already exists ['+str(res['filesize'])+']'
+            print str(threading.currentThread().getName())+': '+str(args['filename'])+' already exists ['+str(res['filesize'])+']'+'[Осталось: '+str(q.qsize())+']'
         else:
-            print str(threading.currentThread().getName())+': '+str(args['filename'])+' saved ['+str(res['filesize'])+']'
-
+            print str(threading.currentThread().getName())+': '+str(args['filename'])+' saved ['+str(res['filesize'])+']'+'[Осталось: '+str(q.qsize())+']'
+        
 y=YandexFotki(username)
 #print y.GetAlbums()
 print 'Создание очереди...'
