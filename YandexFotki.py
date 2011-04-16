@@ -3,7 +3,8 @@
 # Документация по API Яндекс фоток: http://api.yandex.ru/fotki/doc/concepts/About.xml
 # Модуль содержит только основные функции необходимые для скачивания фотографий и альбомов (альбомы должны быть открыты для людей)
 
-import urllib, os, sys, httplib
+import urllib, os, sys, httplib, re, httplib
+from urlparse import urlparse
 from BeautifulSoup import BeautifulSoup
 # BeautifulSoup (http://www.crummy.com/software/BeautifulSoup/)
 
@@ -52,11 +53,46 @@ class YandexFotki():
         return photos
     def GetPhoto(self, link, filename, path):
         '''Скачиваем и сохраняем фоточку'''
+        filename=str(filename)
+        pattern= r"(\.jpg|\.jpeg|\.bmp|\.BMP|\.gif|\.GIF|\.png|\.PNG|\.tiff|\.TIFF|\.JPG|\.JPEG)"
+        cpattern = re.compile(pattern)
+        typefile=cpattern.findall(filename)
+        if len(typefile) < 1:
+            filetype=self.GetFileType(link)
+            filename=filename+str(filetype)
         fullpath=path+"/"+filename.decode('utf-8')
         if os.path.exists(fullpath) == False:
 #           Используйте эту строку, вместо следущей, чтобы видеть прогресс скачивания
 #            urllib.urlretrieve(link, filename=fullpath, reporthook=self.DownloadStatus)
             urllib.urlretrieve(link, filename=fullpath)
+            downloading=True
+        else:
+            downloading=False
+        filesize=os.path.getsize(fullpath)
+        if downloading == True:
+            return {'filesize' : self.HumanSize(filesize), 'exists' : False}
+        else:
+            return {'filesize' : self.HumanSize(filesize), 'exists' : True}
+    def GetFileType(self, link):
+        '''Получение типа файла (для файлов без расширений)'''
+        o = urlparse(link)
+        conn = httplib.HTTPConnection(o.netloc)
+        conn.request("HEAD", o.path)
+        res = conn.getresponse()
+        headers=res.getheaders()
+        head={}
+        for k,v in headers:
+            head[k]=v
+        contenttype=head['content-type']
+        types={
+        'image/jpeg' : '.jpg',
+        'image/gif' : '.gif',
+        'image/tiff' : '.tiff',
+        'image/bmp' : '.bmp',
+        'image/png' : '.png'        
+        }
+        return types[contenttype]
+        
     def DownloadStatus(self, BlockAcquiredN, BlockAcquiredSize, TotalSize):
         '''выводит статус закачки текущей фотографии (фигово работает при многопоточности)'''
         sys.stdout.write('\r')
