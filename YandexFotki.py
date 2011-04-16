@@ -100,7 +100,7 @@ class YandexFotki():
         sys.stdout.write("downloading: "+self.HumanSize(BlockAcquiredN*BlockAcquiredSize)+"/"+self.HumanSize(TotalSize)+"\t\t")
         sys.stdout.flush()
     def HumanSize(self, size):
-        '''человечиский размеры скачиваемых файлов'''
+        '''человеческий размеры скачиваемых файлов'''
         if size < 524288:
             humansize=str(size)+' Bytes'
         elif size >= 524288 and size < 1048576:
