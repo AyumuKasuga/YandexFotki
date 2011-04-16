@@ -1,1 +1,9 @@
-Модуль для выкачивания фоточек с Yandex Fotok через API яндекс фоток
+Многопоточная выкачивалка фоточек с Yandex Fotok через API яндекс фоток.
+Требует библиотеки BeautifulSoup (http://www.crummy.com/software/BeautifulSoup/)
+
+Использование:
+
+python downloader.py <Имя пользователя> <количество потоков (5 по умолчанию)>
+
+например:
+#python downloader.py AyumuKasuga 10

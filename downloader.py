@@ -1,12 +1,24 @@
 #-*- coding: utf-8 -*-
 from YandexFotki import YandexFotki
 from Queue import Queue
-import time
+import time, sys, os
 import threading
+argv=sys.argv
+#print argv[1]
+try:
+    username=argv[1]
+except IndexError:
+    print "Не указано имя пользователя!"
+    sys.exit()
+
+try:
+    threads=int(argv[2])
+except IndexError:
+    print "Не указано количество потоков, используем значение по умолчанию [5]"
+    threads=5
+
+
 q=Queue()
-
-threads=5
-
 def qdownload():
     while True:
         try:
@@ -19,7 +31,7 @@ def qdownload():
             break
 
 
-y=YandexFotki('AyumuKasuga')
+y=YandexFotki(username)
 #print y.GetAlbums()
 print 'Создание очереди...'
 for e in y.GetAlbums():
@@ -30,6 +42,11 @@ for e in y.GetAlbums():
 #        print "ok"
 
     print '['+str(q.qsize())+']['+str(e['title'])+']'
+
+if q.qsize() == 0:
+    print "Очередь пуста, наверное вы неправильно указали имя пользователя, или у него нет альбомов доступных для скачивания"
+    os.removedirs(username)
+    sys.exit()
 
 print "Очередь создана, длина очереди: "+str(q.qsize())
 

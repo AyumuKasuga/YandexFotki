@@ -5,8 +5,10 @@
 
 import urllib, os, sys, httplib
 from BeautifulSoup import BeautifulSoup
+# BeautifulSoup (http://www.crummy.com/software/BeautifulSoup/)
 
 class YandexFotki():
+    '''содержит основные функции для работы (скачивания фоточек) с API яндекс фоток'''
     def __init__(self, username):
         self.username=username
     def GetAlbums(self):
@@ -16,7 +18,10 @@ class YandexFotki():
         linkalbum - ссылка на альбом
         linkphotos - ссылка на фоточки альбома
         '''
-        srcalbums=urllib.urlopen('http://api-fotki.yandex.ru/api/users/'+self.username+'/albums/')
+        try:
+            srcalbums=urllib.urlopen('http://api-fotki.yandex.ru/api/users/'+self.username+'/albums/')
+        except:
+            print "Что-то пошло не так! возможно, неверное имя пользователя или что-то еще..."
         srcxml=srcalbums.read()
         if os.path.exists(self.username) == False:
             os.makedirs(self.username)
