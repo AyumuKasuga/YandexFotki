@@ -21,12 +21,11 @@ except IndexError:
 q=Queue()
 def qdownload():
     while True:
-        try:
-            args = q.get()
-        except q.Empty:
+        if not q.empty():
+            args = q.get_nowait()
+        else:
             print 'done!'
-            return
-#            break
+            break
         print str(threading.currentThread().getName())+': '+str(args['filename'])+' downloading...'
         res=y.GetPhoto(args['link'], args['filename'], args['path'])
         if res['exists'] == True:
