@@ -53,7 +53,6 @@ class YandexFotki():
         if soup.findAll('link', attrs={"rel": "next"}):
             self.GetAlbums(
                 dict(soup.findAll('link', attrs={"rel": "next"})[0].attrs)['href'])
-        print len(self.album)
         return self.album
 
     def GetAlbumInfo(self):
