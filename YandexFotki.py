@@ -11,8 +11,9 @@ from BeautifulSoup import BeautifulSoup
 class YandexFotki():
     '''содержит основные функции для работы (скачивания фоточек) с API яндекс фоток'''
     def __init__(self, username):
-        self.username=username
-    def GetAlbums(self):
+        self.username = username
+        self.album = []
+    def GetAlbums(self, nexurl=''):
         '''Забирает альбомы пользователя
         Возвращает словарь:
         title - название альбома,
@@ -20,14 +21,16 @@ class YandexFotki():
         linkphotos - ссылка на фоточки альбома
         '''
         try:
-            srcalbums=urllib.urlopen('http://api-fotki.yandex.ru/api/users/'+self.username+'/albums/')
+            if not nexurl:
+                srcalbums=urllib.urlopen('http://api-fotki.yandex.ru/api/users/'+self.username+'/albums/')
+            else:
+                srcalbums = urllib.urlopen(nexurl)
         except:
             print "Что-то пошло не так! возможно, неверное имя пользователя или что-то еще..."
         srcxml=srcalbums.read()
         if os.path.exists(self.username) == False:
             os.makedirs(self.username)
         soup=BeautifulSoup(srcxml)
-        self.album=[]
         for e in soup('entry'):
             if os.path.exists(self.username+"/"+e.title.string) == False:
                 os.makedirs(self.username+"/"+e.title.string)
@@ -38,11 +41,14 @@ class YandexFotki():
             "linkalbum" : e('link', {'rel' : 'self'})[0]['href'],
             "linkphotos" : e('link', {'rel' : 'photos'})[0]['href']}
             )
+        if soup.findAll('link',attrs={"rel":"next"}):
+            self.GetAlbums(dict(soup.findAll('link',attrs={"rel":"next"})[0].attrs)['href'])
+        print len(self.album)
         return self.album    
     def GetAlbumInfo(self):
         '''Возвращает информацию об альбоме (не реализовано)'''
         pass
-    def GetAlbumPhotos(self, albumurl):
+    def GetAlbumPhotos(self, albumurl, buff=[]):
         '''Функция забирает список фоточек альбома'''
         srcalbum=urllib.urlopen(albumurl)
         srcxml=srcalbum.read()
@@ -50,6 +56,9 @@ class YandexFotki():
         photos={}
         for e in soup('entry'):
             photos[str(e.title.string)]=str(e('f:img', {'size' : 'orig'})[0]['href'])
+        if soup.findAll('link',attrs={"rel":"next"}):
+            photos = self.GetAlbumPhotos(dict(soup.findAll('link',attrs={"rel":"next"})[0].attrs)['href'], photos)
+        photos.update(buff)
         return photos
     def GetPhoto(self, link, filename, path):
         '''Скачиваем и сохраняем фоточку'''
