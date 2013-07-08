@@ -22,19 +22,49 @@ class YandexFotki():
         self.username = username
         self.album = []
 
-    def GetAlbums(self, nexurl=''):
+    def PrepareAlbumsNames(self):
+        """ Меняет имена альбомам и создает дирректории """
+        self.GetAlbums()
+        buff = []
+        for album in self.album:
+            # Копируем элемент. Иначе получим задваивание имен при рекурсии
+            a = dict(album)
+            a['title'] = self.GetAlbumsName(album)
+            buff.append(a)
+            albumpath = self.username + "/" + a['title']
+            if not os.path.exists(albumpath):
+                os.makedirs(albumpath)
+        self.album = buff
+
+    def GetAlbumsName(self, album, buff=''):
+        """ Составляет название альбома использую полную иерархию альбомов """
+        if buff:
+            name = '%s/%s' % (album['title'], buff)
+        else:
+            name = album['title']
+        if 'linkparent' in album:
+            # Ищем альбом-родитель
+            parentAlbum = [x for x in self.album if album['linkparent'] == x['linkalbum']][0]
+            return self.GetAlbumsName(parentAlbum, name)
+        return name
+
+    def GetAlbums(self, nexturl=''):
         '''Забирает альбомы пользователя
         Возвращает словарь:
         title - название альбома,
         linkalbum - ссылка на альбом
-        linkphotos - ссылка на фоточки альбома
+        linkphotos - ссылка на фоточки альбом
+        linkparent - ссылка на родительский альбом
         '''
         try:
-            if not nexurl:
+            if not nexturl:
+                # Если нет nexturl и что-то есть в albums - значит альбомы уже выкачены
+                if self.album:
+                    return self.album
                 srcalbums = urllib.urlopen(
                     'http://api-fotki.yandex.ru/api/users/' + self.username + '/albums/')
             else:
-                srcalbums = urllib.urlopen(nexurl)
+                srcalbums = urllib.urlopen(nexturl)
         except:
             print "Что-то пошло не так! возможно, неверное имя пользователя или что-то еще..."
         srcxml = srcalbums.read()
@@ -42,17 +72,18 @@ class YandexFotki():
             os.makedirs(self.username)
         soup = BeautifulSoup(srcxml)
         for e in soup('entry'):
-            if os.path.exists(self.username + "/" + e.title.string) == False:
-                os.makedirs(self.username + "/" + e.title.string)
+            #if os.path.exists(self.username + "/" + e.title.string) == False:
+            #    os.makedirs(self.username + "/" + e.title.string)
+            album = {"title": e.title.string,
+                "linkalbum": e('link', {'rel': 'self'})[0]['href'],
+                "linkphotos": e('link', {'rel': 'photos'})[0]['href']}
+            if e('link', {'rel': 'album'}):
+                album['linkparent'] = e('link', {'rel': 'album'})[0]['href']
+            self.album.append(album)
 
-            self.album.append(
-                {"title": e.title.string,
-                             "linkalbum": e('link', {'rel': 'self'})[0]['href'],
-                             "linkphotos": e('link', {'rel': 'photos'})[0]['href']}
-            )
-        if soup.findAll('link', attrs={"rel": "next"}):
-            self.GetAlbums(
-                dict(soup.findAll('link', attrs={"rel": "next"})[0].attrs)['href'])
+        if soup('link', {'rel': 'next'}):
+            self.GetAlbums(soup('link', {'rel': 'next'})[0]['href'])
+
         return self.album
 
     def GetAlbumInfo(self):
@@ -68,9 +99,8 @@ class YandexFotki():
         for e in soup('entry'):
             photos[str(e.title.string)] = str(
                 e('f:img', {'size': 'orig'})[0]['href'])
-        if soup.findAll('link', attrs={"rel": "next"}):
-            photos = self.GetAlbumPhotos(
-                dict(soup.findAll('link', attrs={"rel": "next"})[0].attrs)['href'], photos)
+        if soup('link', {'rel': 'next'}):
+            photos = self.GetAlbumPhotos(soup('link', {"rel": "next"})[0]['href'], photos)
         photos.update(buff)
         return photos
 
@@ -84,6 +114,7 @@ class YandexFotki():
             filetype = self.GetFileType(link)
             filename = filename + str(filetype)
         fullpath = path + "/" + filename.decode('utf-8')
+        print fullpath
         if os.path.exists(fullpath) == False:
 #           Используйте эту строку, вместо следущей, чтобы видеть прогресс скачивания
 #            urllib.urlretrieve(link, filename=fullpath, reporthook=self.DownloadStatus)

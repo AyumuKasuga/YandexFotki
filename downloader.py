@@ -6,6 +6,7 @@ import time
 import sys
 import os
 import threading
+
 argv = sys.argv
 try:
     username = argv[1]
@@ -19,9 +20,11 @@ except IndexError:
     print "Не указано количество потоков, используем значение по умолчанию [5]"
     threads = 5
 
+# Поддержка русских символов в именах
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 q = Queue()
-
 
 def qdownload():
     while True:
@@ -38,6 +41,7 @@ def qdownload():
             print str(threading.currentThread().getName()) + ': ' + str(args['filename']) + ' saved [' + str(res['filesize']) + ']' + '[Осталось: ' + str(q.qsize()) + ']'
 
 y = YandexFotki(username)
+y.PrepareAlbumsNames()
 # print y.GetAlbums()
 print 'Создание очереди...'
 for e in y.GetAlbums():
