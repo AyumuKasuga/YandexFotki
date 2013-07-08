@@ -53,7 +53,7 @@ class YandexFotki():
         Возвращает словарь:
         title - название альбома,
         linkalbum - ссылка на альбом
-        linkphotos - ссылка на фоточки альбом
+        linkphotos - ссылка на фоточки альбома
         linkparent - ссылка на родительский альбом
         '''
         try:
@@ -68,7 +68,7 @@ class YandexFotki():
         except:
             print "Что-то пошло не так! возможно, неверное имя пользователя или что-то еще..."
         srcxml = srcalbums.read()
-        if os.path.exists(self.username) == False:
+        if not os.path.exists(self.username):
             os.makedirs(self.username)
         soup = BeautifulSoup(srcxml)
         for e in soup('entry'):
@@ -115,7 +115,7 @@ class YandexFotki():
             filename = filename + str(filetype)
         fullpath = path + "/" + filename.decode('utf-8')
         print fullpath
-        if os.path.exists(fullpath) == False:
+        if not os.path.exists(fullpath):
 #           Используйте эту строку, вместо следущей, чтобы видеть прогресс скачивания
 #            urllib.urlretrieve(link, filename=fullpath, reporthook=self.DownloadStatus)
             urllib.urlretrieve(link, filename=fullpath)
